@@ -1,0 +1,149 @@
+---
+title: "analysis"
+author: "Patrick"
+date: "2024-04-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(janitor)
+library(curl)
+library(httr)
+library(jsonlite)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+
+```
+
+```{r}
+beneficial <- read_csv("https://data.ny.gov/resource/t9kf-dqbc.csv?$select=beneficial_client_name,COUNT(beneficial_client_name)&$group=beneficial_client_name&$LIMIT=100000")
+
+```
+
+Potential clients
+
+-   Uber
+
+-   Lyft
+
+-   Hampton Jitney
+
+-   Yellow Cabs
+
+-   Bus - Patrick Condren
+
+-   UPS
+
+-   Memorial Sloan kettering
+
+-   black car fund
+
+-   coach USA
+
+
+```{r}
+beneficial_clients <- c("HAMPTON JITNEY, INC.;", "UBER TECHNOLOGIES, INC. AND AFFILIATES;", "LYFT, INC.;", "UNITED PARCEL SERVICE, INC.;", "COACH USA NORTHEAST, INC.;")
+
+client_details <- read_csv(URLencode(paste0("https://data.ny.gov/resource/t9kf-dqbc.csv?$query=
+                        SELECT * 
+                        WHERE beneficial_client_name IN (",paste0("'", beneficial_clients, "'", collapse = ","),")
+                        LIMIT 100000")))
+
+focus_congestion <- client_details %>%  filter(str_detect(focus_identifying_number, "congestion pricing")) %>% pull(focus_identifying_number) %>% unique() %>% unlist()
+
+lobbying_focus_numbers <- c("CONGESTION PRICING", "Congestion Pricing", "Congestion Pricing", "Congestion Pricing/Stipulated Fine",
+                            "Possible exemptions to the proposed congestion pricing surcharge", "Discussions regarding congestion pricing in New York City",
+                            "Status Call on Congestion Pricing", "CONESTION PRICING", "Potential municipal regulation to implement congestion pricing",
+                            "Congestion Pricing/Gig Economy Workers"
+                            )
+
+this_works <- read_csv(URLencode(paste0("https://data.ny.gov/resource/t9kf-dqbc.csv?$query=
+                        SELECT * 
+                        WHERE focus_identifying_number IN (",paste0("'", lobbying_focus_numbers, "'", collapse = ","),")
+                        LIMIT 100000")))
+
+
+this_doesnt <- read_csv(
+                        URLencode(
+                          paste0("https://data.ny.gov/resource/t9kf-dqbc.csv?$query=
+                          SELECT * 
+                          WHERE focus_identifying_number IN (",paste0("'", focus_congestion, "'", collapse = ","),")
+                          LIMIT 100000")
+                          )
+                        )
+
+#all these people lobbied about congestion pricing
+congestion_clients <- congestion_pricing %>%  pull(beneficial_client_name) %>% unique() %>% unlist()
+
+manual_list <- c("TRUCKING ASSOCIATION OF NEW YORK;"                                              
+,"UBER TECHNOLOGIES, INC. AND AFFILIATES;"                                        
+,"LYFT, INC.;"                                                                    
+,"AVIS BUDGET CAR RENTAL, LLC;"                                                   
+,"REAL ESTATE BOARD OF NEW YORK, INC.;"                                           
+,"COACH USA NORTHEAST, INC.;"                                                     
+,"UNITED PARCEL SERVICE, INC.;"                                                   
+,"ENVIRONMENTAL DEFENSE FUND, INCORPORATED;"                                      
+,"CENTER FOR INDEPENDENCE OF THE DISABLED IN NEW YORK, INC.;"                     
+,"COALITION FOR THE HOMELESS, INC.;"                                              
+,"COMMUNITY SERVICE SOCIETY OF NEW YORK;"                                         
+,"Fordham University;"                                                            
+,"NEW YORK CITY ENVIRONMENTAL JUSTICE ALLIANCE, INC.;"                            
+,"NEW YORK BLACK CAR OPERATORS' INJURY COMPENSATION FUND, INC.;"                  
+,"The Business Council of New York State, Inc.;"                                  
+,"Building Trades Employers Association, Inc. ;"                                  
+,"METROPOLITAN TRANSPORTATION AUTHORITY;"                                         
+,"COALITION FOR NEW YORK'S FUTURE, INC.;"                                         
+,"AMERICAN INSTITUTE OF ARCHITECTS NEW YORK CHAPTER;"                             
+,"COMMITTEE FOR TAXI SAFETY INC.;"                                                
+,"CLARKSON UNIVERSITY;"                                                           
+,"THE PARTNERSHIP FOR NEW YORK CITY, INC.; COALITION FOR NEW YORK'S FUTURE, INC.;"
+,"ENVIRONMENTAL JUSTICE ALLIANCE (NYC);"                                          
+,"Long Island Contractors Association, Inc;"                                      
+,"CHARTER COMMUNICATIONS OPERATING, LLC;"                                         
+,"CSC HOLDINGS, LLC;"                                                             
+,"NATURAL RESOURCES DEFENSE COUNCIL, INC.;"                                       
+,"HNTB CORPORATION;"                                                              
+,"RECLAIM NEW YORK INITIATIVE, INC.;"                                             
+,"Retail Business Services LLC;"                                                  
+,"Metropolis, LLC;" )  
+
+all_client_filings <- read_csv(URLencode(paste0("https://data.ny.gov/resource/t9kf-dqbc.csv?$query=
+                        SELECT form_submission_id
+                        WHERE beneficial_client_name IN (",paste0("'", manual_list[0:11], "'", collapse = ","),")
+                        LIMIT 100000000")))
+
+```
+Senate Bill S314A/S314
+Assembly Bill A275A
+2023-2024 Legislative Session
+Establishes a ride clean rebate program for bicycles with electric assist and electric scooters
+
+
+
+Intro 0927-2023
+This bill would establish a task force to determine whether and where charging stations for bicycles with electric assist can be built for exclusive use by food delivery workers. The task force will review the cost of building and operating the charging stations, including whether some or all of that cost can be borne by third party courier services or third party delivery services; where such charging stations should be located; whether the operation of the charging stations would best be done by third parties; whether charging station use could be limited to the class of food delivery workers; whether food delivery workers can use the charging stations for free or at low cost; and the way in which such charging stations can mitigate fire risk caused by the lithium-ion batteries contained in bicycles with electric assist.
+
+Intro 0822-2022
+A Local Law to amend the administrative code of the city of New York, in relation to establishing a battery safety certification for powered mobility device mechanics
+
+CONESTION PRICING
+
+INTRO 1078-2023
+A Local Law to amend the administrative code of the city of New York, in relation to the wrongful deactivation of high-volume for-hire vehicle drivers
+
+A3008
+S4008
+Transportation budget
+
+Black Car Fund Appointment
+
+
+
+
+
